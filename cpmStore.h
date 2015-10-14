@@ -56,18 +56,19 @@ private:
 	std::vector<Context*> m_map;
 	std::string c_string;
 	unsigned long c_code;
-	unsigned long c_counts;
+	double c_counts;
 };
 
 class cpmStore {
 	friend class EM;
 public:
+
 	cpmStore();
 	cpmStore(char *, int window=5, unsigned long DUP=5000000, bool prune=false);
 	~cpmStore();
 	static cpmStore& Instance(){ return *instance;}
 	const static cpmStore& InstanceConst() { return *instance;}
-	unsigned long getVocabSize(){return m_vocab.size();}
+	unsigned long getVocabSize(){return m_words;}
 	unsigned short getContextSize(){return m_context_size; }
 	boost::unordered_map<std::string, Code*> getVocab(){return m_vocab;}
 	// iters
@@ -78,6 +79,7 @@ public:
 	iterator end() {
 		return m_vocab.end();
 	}
+	Code* getNode(unsigned long c){return m_revmap[c];}
 
 private:
 	boost::unordered_map<std::string, Code*> m_vocab;
@@ -86,6 +88,7 @@ private:
 	unsigned short int m_context_size;
 	bool m_prune;
 	static cpmStore *instance;
+	boost::unordered_map<unsigned long, Code*> m_revmap;
 	void chop(std::string &);
 	Code* EncodeWord(const std::string&);
 	Code* getCode(std::string&);

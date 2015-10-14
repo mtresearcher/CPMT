@@ -2,7 +2,7 @@
  * cpmStore.cpp
  *
  *  Created on: Apr 27, 2015
- *      Author: prmathur
+ *      Author: prashant mathur
  */
 #pragma once
 
@@ -24,7 +24,7 @@ cpmStore::cpmStore(char *filename, int window, unsigned long DUP, bool prune)  {
 }
 
 cpmStore::~cpmStore() {
-	// TODO Auto-generated destructor stub
+
 }
 
 bool cpmStore::LoadTrainingCorpus(char* filename){
@@ -33,17 +33,14 @@ bool cpmStore::LoadTrainingCorpus(char* filename){
 	// do one pass ... encode all words .. prune to top N words ..
 	std::ifstream file(filename);
 	std::string line;
+	std::vector<std::string> text;
 	if(file.is_open())
 	{
-		while(getline(file, line)){
-			std::vector<std::string> vecStr;
-			std::string del = " ";
-			split_marker_perl(line, del, vecStr);
-			std::string temp("<s>");
-			freqMap[temp]=1;
-			for(size_t i=0; i<vecStr.size(); i++){
-				freqMap[vecStr[i]]++;
-			}
+		std::string temp("</s>");
+		freqMap[temp]=1;
+		while(file >> line){
+			text.push_back(line);
+			freqMap[line]++;
 		}
 	}
 	file.close();
@@ -61,25 +58,20 @@ bool cpmStore::LoadTrainingCorpus(char* filename){
 			c->SetCount(itr->second);
 		}
 	}
-
 	// storing context
 	std::ifstream file1(filename);
 	if(file1.is_open())
 	{
-		while(getline(file1, line)){
-			chop(line);
-			std::vector<std::string> vecStr;
-			std::string del = " ";
-			split_marker_perl(line, del, vecStr);
-			for(size_t i=0; i<vecStr.size(); i++){
-				Code *c = getCode(vecStr[i]);
+		for(long k=0; k<long(text.size()); k++){
+//			for(size_t i=0; i<vecStr.size(); i++){
+				Code *c = getCode(text[k]);
 				if(c!=NULL){
 					Context *con = (Context*)calloc(1, sizeof(Context));
 					con = new Context();
-					for(int j = i - (floor(m_context_size/2)) ; j <= i + (floor(m_context_size/2)); j++ ){
-						if(j == i) continue;
+					for(int j = k - (floor(m_context_size/2)) ; j <= k + (floor(m_context_size/2)); j++ ){
+						if(j == k) continue;
 						std::string con_word="<s>";
-						if(j >= 0 && j < vecStr.size()) con_word = vecStr[j];
+						if(j >= 0 && j < text.size()) con_word = text[j];
 						Code *con_word_code = getCode(con_word);
 						if(con_word_code != NULL){
 							con->add(con_word_code);
@@ -87,7 +79,7 @@ bool cpmStore::LoadTrainingCorpus(char* filename){
 					}
 					c->addContext(con);
 				}
-			}
+//			}
 		}
 	}
 	file1.close();
@@ -113,6 +105,7 @@ Code* cpmStore::EncodeWord(const std::string& s){
 	c = (Code*)calloc(1, sizeof(Code));
 	c = new Code(m_words, s);
 	m_vocab[s] = c;
+	m_revmap[m_words] = c;
 	m_words++;
 	return c;
 }

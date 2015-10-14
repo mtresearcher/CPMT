@@ -37,7 +37,6 @@ void EM::InitializeParams(){
 	char filename[20];
 	sprintf(filename, "init.model");
 	PrintModel(filename);
-	threads.clear();
 }
 
 void EM::normalize(){
@@ -59,36 +58,36 @@ void EM::normalize(){
 	}
 }
 
-void EM::ComputeThreadSpecificCounts(thread_specific_data& data){
-	for(unsigned short int j = 0; j < m_topics; j++){
-		data.product[j] = 1;
-		bool flag = false;
-		std::vector<Code*> cont_codes = data.context->getCodes();
-		for(size_t indx=0; indx < cont_codes.size(); indx++){
-			data.product[j] *= P[cont_codes[indx]][j];
-			if(data.product[j] < 1e-16) {data.product[j]=0; flag=true; break;}
-		}
-		if(flag==true) continue;
-		data.denominator += (data.product[j] * Q[data.code][j]);
-	}
-}
+//void EM::ComputeThreadSpecificCounts(thread_specific_data& data){
+//	for(unsigned short int j = 0; j < m_topics; j++){
+//		data.product[j] = 1;
+//		bool flag = false;
+//		std::vector<Code*> cont_codes = data.context->getCodes();
+//		for(size_t indx=0; indx < cont_codes.size(); indx++){
+//			data.product[j] *= P[cont_codes[indx]][j];
+//			if(data.product[j] < 1e-16) {data.product[j]=0; flag=true; break;}
+//		}
+//		if(flag==true) continue;
+//		data.denominator += (data.product[j] * Q[data.code][j]);
+//	}
+//}
 
-void EM::CalculatePartialCounts(thread_specific_data& data){
-	double temp=0;
-	for(unsigned short int j = 0; j < m_topics; j++){
-		temp = (data.product[j] * Q[data.code][j]) / data.denominator;
-		std::vector<Code*> cont_codes = data.context->getCodes();
-		for(size_t indx=0; indx < cont_codes.size(); indx++){
-			p[cont_codes[indx]][j] += temp;
-			m_totp[j] += temp;
-		}
-		q[data.code][j]+=temp;
-		m_totq[data.code] += temp;
-	}
-}
+//void EM::CalculatePartialCounts(thread_specific_data& data){
+//	double temp=0;
+//	for(unsigned short int j = 0; j < m_topics; j++){
+//		temp = (data.product[j] * Q[data.code][j]) / data.denominator;
+//		std::vector<Code*> cont_codes = data.context->getCodes();
+//		for(size_t indx=0; indx < cont_codes.size(); indx++){
+//			p[cont_codes[indx]][j] += temp;
+//			m_totp[j] += temp;
+//		}
+//		q[data.code][j]+=temp;
+//		m_totq[data.code] += temp;
+//	}
+//}
 
 void EM::ComputeExpectedCounts(){
-	std::vector<std::thread> threads;
+	//std::vector<std::thread> threads;
 	cpmStore *cpm = &cpmStore::Instance();
 	if(cpm==NULL) {std::cerr<<"Corpus was not loaded properly!\n";exit(0);}
 	size_t count=0;
@@ -106,7 +105,7 @@ void EM::ComputeExpectedCounts(){
 				bool flag = false;
 				std::vector<Code*> cont_codes = cont_vec[i]->getCodes();
 				for(size_t indx=0; indx < cont_codes.size(); indx++){
-					if(P[cont_codes[indx]][j] > 0 && product[j] > 0){
+					if(P[cont_codes[indx]][j] > 0 && product[j] > 0 && rand()%2==0){
 						product[j] *= P[cont_codes[indx]][j];
 					}
 					if(product[j] < 1e-16) {product[j]=0; flag=true; break;}
@@ -120,7 +119,7 @@ void EM::ComputeExpectedCounts(){
 			double temp=0;
 			for(unsigned short int j = 0; j < m_topics; j++){
 				if(Q[itr->second][j] == 0 || product[j]==0) continue;
-				temp = (product[j] * Q[itr->second][j]) / denominator;
+				temp = (product[j] * Q[itr->second][j] * itr->second->getCounts()) / (denominator);
 				std::vector<Code*> cont_codes = cont_vec[i]->getCodes();
 				for(size_t indx=0; indx < cont_codes.size(); indx++)
 					p[cont_codes[indx]][j] += temp;

@@ -10,8 +10,6 @@
 #ifndef EM_H_
 #define EM_H_
 
-#include <thread>
-
 #include <iostream>
 #include <vector>
 #include <string>
@@ -35,8 +33,8 @@ public:
 //	void Run(){return ;}
 //	bool DeleteAfterExecution(){return true;}
 
-	void ComputeThreadSpecificCounts(thread_specific_data&);
-	void CalculatePartialCounts(thread_specific_data&);
+//	void ComputeThreadSpecificCounts(thread_specific_data&);
+//	void CalculatePartialCounts(thread_specific_data&);
 
 private:
 	size_t m_maxIter;
@@ -56,7 +54,7 @@ private:
 	boost::unordered_map<double, double> m_totp;
 	boost::unordered_map<Code*, double> m_totq;
 // for multi threading
-	std::vector<pthread_t> threads;
+	//std::vector<pthread_t> threads;
 };
 
 
